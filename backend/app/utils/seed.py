@@ -2,7 +2,7 @@ import logging
 import uuid
 import sqlalchemy as sa
 from datetime import datetime, timezone, timedelta
-from app.core.database import SessionLocal, Base, engine
+from app.core.database import SessionLocal
 from app.core.security import get_password_hash
 from app.models.user import User, UserRole
 from app.models.customer import Customer, CustomerStatus
@@ -13,15 +13,19 @@ logger = logging.getLogger("seed")
 
 def seed_database():
     """Seeds the database with admin users and initial demo customers."""
-    Base.metadata.create_all(bind=engine)
+    # Schema is managed by Alembic migrations — do NOT call create_all here
+    # as it can recreate stale native enum types that conflict with VARCHAR columns.
     db = SessionLocal()
 
     try:
-        # Normalize any stale uppercase role values from a previous failed migration
-        # This is a no-op if the column already has correct lowercase values
+        # Normalize any stale uppercase role or status values from previous schema versions
+        # This is a safe idempotent operation
         try:
             db.execute(
                 sa.text("UPDATE users SET role = LOWER(role) WHERE role != LOWER(role)")
+            )
+            db.execute(
+                sa.text("UPDATE customers SET status = LOWER(status) WHERE status != LOWER(status)")
             )
             db.commit()
         except Exception:

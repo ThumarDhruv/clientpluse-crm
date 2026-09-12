@@ -6,7 +6,6 @@ from fastapi.exceptions import RequestValidationError, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
-from app.core.database import Base, engine
 from app.core.exceptions import AppException
 from app.api.v1.router import api_router
 from app.api.v1.endpoints import health
@@ -22,13 +21,9 @@ logger = logging.getLogger("clientpulse")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up ClientPulse Customer Management API...")
-    # Initialize DB tables for non-testing environment
-    if not settings.DATABASE_URL.startswith("sqlite") and settings.APP_ENV != "test":
-        try:
-            Base.metadata.create_all(bind=engine)
-            logger.info("Database tables verified.")
-        except Exception as e:
-            logger.warning(f"Database initialization warning: {e}")
+    # Schema is managed by Alembic migrations (run before server start).
+    # Do NOT call create_all here — it recreates native PG enum types that
+    # conflict with the VARCHAR columns used by native_enum=False models.
     yield
     logger.info("Shutting down ClientPulse Customer Management API...")
 

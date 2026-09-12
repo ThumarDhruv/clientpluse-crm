@@ -17,12 +17,17 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Drop any stale native enum type from a failed previous deploy
-    # This is safe to run even if the type doesn't exist (IF EXISTS)
+    # Drop any stale native enum types left from SQLAlchemy create_all() on previous deploys.
+    # Both were created incorrectly as native PG ENUMs despite native_enum=False on the models.
+    # Safe to run even if they don't exist (IF EXISTS).
     op.execute("DROP TYPE IF EXISTS user_role_enum CASCADE")
+    op.execute("DROP TYPE IF EXISTS customer_status_enum CASCADE")
 
-    # Add role as a plain VARCHAR column storing lowercase string values
-    # (native_enum=False on the model means SQLAlchemy uses VARCHAR, not a PG ENUM type)
+    # Normalize any uppercase enum values that may have been stored before the fix
+    op.execute("UPDATE customers SET status = LOWER(status) WHERE status != LOWER(status)")
+    op.execute("UPDATE users SET role = LOWER(role) WHERE role != LOWER(role)")
+
+    # Add role column as plain VARCHAR (native_enum=False stores lowercase strings)
     op.add_column(
         'users',
         sa.Column(
