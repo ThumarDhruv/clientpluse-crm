@@ -64,6 +64,12 @@ def seed_database():
                 )
                 db.add(user)
                 logger.info(f"Created user: {u['email']} (role={u['role'].value})")
+            else:
+                if existing.role != u["role"]:
+                    existing.role = u["role"]
+                    existing.password_hash = get_password_hash(u["password"])
+                    logger.info(f"Updated user role for: {u['email']} -> {u['role'].value}")
+        db.commit()
 
         # 2. Seed Initial Customers
         initial_customers = [
