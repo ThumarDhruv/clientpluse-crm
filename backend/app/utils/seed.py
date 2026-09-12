@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from app.core.database import SessionLocal, Base, engine
 from app.core.security import get_password_hash
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.customer import Customer, CustomerStatus
 
 logging.basicConfig(level=logging.INFO)
@@ -21,11 +21,18 @@ def seed_database():
             {
                 "email": "admin@example.com",
                 "password": "Admin@123",
+                "role": UserRole.ADMIN,
             },
             {
-                "email": "sarah.jenkins@technicorp.com",
-                "password": "ClientPulse#2026!",
-            }
+                "email": "manager@example.com",
+                "password": "Manager@123",
+                "role": UserRole.MANAGER,
+            },
+            {
+                "email": "viewer@example.com",
+                "password": "Viewer@1234",
+                "role": UserRole.VIEWER,
+            },
         ]
 
         for u in demo_users:
@@ -36,11 +43,12 @@ def seed_database():
                     email=u["email"],
                     password_hash=get_password_hash(u["password"]),
                     is_active=True,
+                    role=u["role"],
                     created_at=datetime.now(timezone.utc),
                     updated_at=datetime.now(timezone.utc)
                 )
                 db.add(user)
-                logger.info(f"Created user: {u['email']}")
+                logger.info(f"Created user: {u['email']} (role={u['role'].value})")
 
         # 2. Seed Initial Customers
         initial_customers = [

@@ -4,6 +4,7 @@ export interface StoredUser {
   id: string;
   email: string;
   is_active: boolean;
+  role: "admin" | "manager" | "viewer";
 }
 
 export function getStoredToken(): string | null {

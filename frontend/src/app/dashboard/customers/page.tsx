@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useCustomers, useDeleteCustomer } from "@/features/customers/hooks";
 import { Customer } from "@/features/customers/types";
 import { useToast } from "@/providers/ToastProvider";
+import { useAuthContext } from "@/providers/AuthProvider";
 
 function CustomersContent() {
   const searchParams = useSearchParams();
@@ -54,6 +55,7 @@ function CustomersContent() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { success, error: toastError } = useToast();
+  const { canWrite } = useAuthContext();
 
   const [sortField, sortOrder] = sortBy.split(":") as [string, "asc" | "desc"];
 
@@ -172,14 +174,16 @@ function CustomersContent() {
           >
             Export CSV
           </Button>
-          <Link href="/dashboard/customers/new">
-            <Button
-              size="md"
-              leftIcon={<Plus className="w-4 h-4" />}
-            >
-              Add Customer
-            </Button>
-          </Link>
+          {canWrite && (
+            <Link href="/dashboard/customers/new">
+              <Button
+                size="md"
+                leftIcon={<Plus className="w-4 h-4" />}
+              >
+                Add Customer
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

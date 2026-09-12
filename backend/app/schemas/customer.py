@@ -13,6 +13,12 @@ class CustomerBase(BaseModel):
     company: str = Field(..., min_length=2, max_length=150, description="Customer company or account name")
     status: CustomerStatus = Field(default=CustomerStatus.ACTIVE, description="Account lifecycle status")
 
+    @field_validator("email", mode="before")
+    def normalize_email(cls, v):
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
+
     @field_validator("name", "company", "phone", mode="before")
     def strip_whitespace(cls, v):
         if isinstance(v, str):
@@ -40,6 +46,12 @@ class CustomerUpdate(BaseModel):
     phone: Optional[str] = Field(None, min_length=5, max_length=30)
     company: Optional[str] = Field(None, min_length=2, max_length=150)
     status: Optional[CustomerStatus] = None
+
+    @field_validator("email", mode="before")
+    def normalize_email(cls, v):
+        if v is not None and isinstance(v, str):
+            return v.strip().lower()
+        return v
 
     @field_validator("name", "company", "phone", mode="before")
     def strip_whitespace(cls, v):

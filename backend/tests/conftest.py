@@ -2,10 +2,8 @@ import os
 import sys
 import pytest
 
-# Ensure backend root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Set test environment
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = "sqlite://"
 
@@ -21,10 +19,9 @@ from sqlalchemy.pool import StaticPool
 from app.core.database import Base, get_db
 from app.core.security import get_password_hash, create_access_token
 from app.main import app
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.customer import Customer, CustomerStatus
 
-# Test SQLite in-memory database with StaticPool
 test_engine = create_engine(
     "sqlite://",
     connect_args={"check_same_thread": False},
@@ -63,12 +60,16 @@ def client(db):
     app.dependency_overrides.clear()
 
 
+# --- User fixtures per role ---
+
 @pytest.fixture
 def test_user(db):
+    """Admin user — full access."""
     user = User(
         email="admin@example.com",
         password_hash=get_password_hash("Admin@123"),
-        is_active=True
+        is_active=True,
+        role=UserRole.ADMIN,
     )
     db.add(user)
     db.commit()
@@ -77,8 +78,51 @@ def test_user(db):
 
 
 @pytest.fixture
+def manager_user(db):
+    user = User(
+        email="manager@example.com",
+        password_hash=get_password_hash("Manager@123"),
+        is_active=True,
+        role=UserRole.MANAGER,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@pytest.fixture
+def viewer_user(db):
+    user = User(
+        email="viewer@example.com",
+        password_hash=get_password_hash("Viewer@1234"),
+        is_active=True,
+        role=UserRole.VIEWER,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+# --- Auth header fixtures ---
+
+@pytest.fixture
 def auth_headers(test_user):
-    token = create_access_token(subject=str(test_user.id))
+    """Admin auth headers."""
+    token = create_access_token(subject=str(test_user.id), role=test_user.role.value)
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def manager_headers(manager_user):
+    token = create_access_token(subject=str(manager_user.id), role=manager_user.role.value)
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def viewer_headers(viewer_user):
+    token = create_access_token(subject=str(viewer_user.id), role=viewer_user.role.value)
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -89,7 +133,7 @@ def sample_customer(db):
         email="elena.rostova@hyperion.ai",
         phone="+1 (555) 891-2345",
         company="Hyperion Dynamics",
-        status=CustomerStatus.ACTIVE
+        status=CustomerStatus.ACTIVE,
     )
     db.add(customer)
     db.commit()

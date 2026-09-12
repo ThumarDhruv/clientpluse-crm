@@ -18,7 +18,7 @@ class AuthService:
         if not user.is_active:
             raise UnauthorizedException("User account is deactivated.")
 
-        access_token = create_access_token(subject=str(user.id))
+        access_token = create_access_token(subject=str(user.id), role=user.role.value)
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",

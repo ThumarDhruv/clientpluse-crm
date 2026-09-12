@@ -6,13 +6,14 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-Passing_29%2F29-success)](backend/tests)
+[![Tests](https://img.shields.io/badge/Tests-Passing_40%2B%2F40%2B-success)](backend/tests)
 
 ClientPulse is a full-stack Customer Relationship Management (CRM) platform built for enterprise customer lifecycle operations. It features a modern **Next.js 15 App Router** interface with URL state synchronization and responsive layouts, backed by a high-performance **FastAPI** REST API, PostgreSQL persistence with Alembic migrations, JWT authentication, and Docker orchestration.
 
 ---
 
 ## 📑 Table of Contents
+
 - [Tech Stack](#-tech-stack)
 - [Key Features](#-key-features)
 - [Quick Start with Docker](#-quick-start-with-docker-compose)
@@ -30,6 +31,7 @@ ClientPulse is a full-stack Customer Relationship Management (CRM) platform buil
 ## 💻 Tech Stack
 
 ### Frontend
+
 - **Framework**: [Next.js 15.1+](https://nextjs.org/) (App Router, Server & Client Components)
 - **Language**: [TypeScript 5.x](https://www.typescriptlang.org/) (Strict mode, zero `any`)
 - **Styling**: [Tailwind CSS 3.4](https://tailwindcss.com/) with responsive mobile drawer navigation
@@ -39,6 +41,7 @@ ClientPulse is a full-stack Customer Relationship Management (CRM) platform buil
 - **Testing**: [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/)
 
 ### Backend
+
 - **Framework**: [FastAPI 0.110+](https://fastapi.tiangolo.com/) (Asynchronous Starlette engine)
 - **Data Validation & Serialization**: [Pydantic v2](https://docs.pydantic.dev/)
 - **ORM & Database Engine**: [SQLAlchemy 2.0](https://www.sqlalchemy.org/) with [Psycopg 3](https://www.psycopg.org/)
@@ -47,6 +50,7 @@ ClientPulse is a full-stack Customer Relationship Management (CRM) platform buil
 - **Testing**: [Pytest](https://docs.pytest.org/) + `pytest-asyncio` (21/21 passing tests)
 
 ### Infrastructure & DevOps
+
 - **Primary Database**: PostgreSQL 16 (UUID primary keys, B-tree indexes)
 - **Caching**: Optional Redis cache with automatic in-memory fallback
 - **Containerization**: Docker multi-stage builds & Docker Compose
@@ -58,6 +62,7 @@ ClientPulse is a full-stack Customer Relationship Management (CRM) platform buil
 
 - **🔐 Secure Authentication**:
   - JWT bearer token authentication with server-side signature and expiration verification.
+  - **Role-Based Access Control (RBAC)**: Three user roles (`admin`, `manager`, `viewer`) with granular endpoint permissions.
   - Constant-time password verification using `bcrypt`.
   - Protected client routes with automatic redirection to `/login`.
   - 1-Click "Demo Autofill" action for evaluator convenience.
@@ -95,6 +100,7 @@ docker compose up --build -d
 ```
 
 ### Service Access Points:
+
 - **Frontend Application**: [http://localhost:3000](http://localhost:3000)
 - **Backend REST API**: [http://localhost:8000](http://localhost:8000)
 - **Interactive Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
@@ -102,6 +108,7 @@ docker compose up --build -d
 - **System Health Check**: [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
 
 To shut down:
+
 ```bash
 docker compose down -v
 ```
@@ -111,6 +118,7 @@ docker compose down -v
 ## 🛠️ Local Development Setup
 
 ### 1. Prerequisites
+
 - **Node.js**: v18.17+ or v20+
 - **Python**: 3.10+ or 3.11+
 - **PostgreSQL**: 15+ or 16 (or use local Docker container)
@@ -169,12 +177,19 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🔑 Demo Credentials
 
-| Attribute | Value |
-| :--- | :--- |
-| **Email** | `admin@example.com` |
-| **Password** | `Admin@123` |
+| Role                       | Email                 | Password      |
+| :------------------------- | :-------------------- | :------------ |
+| **Admin** (Full Access)    | `admin@example.com`   | `Admin@123`   |
+| **Manager** (Read + Write) | `manager@example.com` | `Manager@123` |
+| **Viewer** (Read Only)     | `viewer@example.com`  | `Viewer@1234` |
 
-> 💡 **Tip**: On the login screen, click the **"Fill Demo Credentials (1-Click)"** button to instantly populate these test credentials.
+> 💡 **Tip**: On the login screen, click the **"Fill Demo Credentials (1-Click)"** button to instantly populate admin test credentials.
+
+> **RBAC Roles**:
+>
+> - **Admin**: Full CRUD access (create, read, update, delete customers)
+> - **Manager**: Can create, read, and update customers (no delete)
+> - **Viewer**: Read-only access to customer records
 
 ---
 
@@ -184,37 +199,40 @@ The REST API follows RFC-compliant HTTP status codes and uniform JSON response s
 
 ### Core Endpoints Summary
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/login` | Authenticate user & issue signed JWT access token | No |
-| `GET` | `/api/v1/auth/me` | Fetch authenticated user profile details | Yes (Bearer) |
-| `GET` | `/api/v1/customers` | Search, filter, sort, and paginate customer records | Yes (Bearer) |
-| `POST` | `/api/v1/customers` | Create a new customer record | Yes (Bearer) |
-| `GET` | `/api/v1/customers/{id}` | Retrieve specific customer record by UUID | Yes (Bearer) |
-| `PATCH` | `/api/v1/customers/{id}` | Partially update customer attributes | Yes (Bearer) |
-| `DELETE`| `/api/v1/customers/{id}` | Permanently delete customer record (HTTP 204) | Yes (Bearer) |
-| `GET` | `/api/v1/health` | Health & infrastructure connectivity check | No |
+| Method   | Endpoint                 | Description                                         | Auth Required |
+| :------- | :----------------------- | :-------------------------------------------------- | :------------ |
+| `POST`   | `/api/v1/auth/login`     | Authenticate user & issue signed JWT access token   | No            |
+| `GET`    | `/api/v1/auth/me`        | Fetch authenticated user profile details            | Yes (Bearer)  |
+| `GET`    | `/api/v1/customers`      | Search, filter, sort, and paginate customer records | Yes (Bearer)  |
+| `POST`   | `/api/v1/customers`      | Create a new customer record                        | Yes (Bearer)  |
+| `GET`    | `/api/v1/customers/{id}` | Retrieve specific customer record by UUID           | Yes (Bearer)  |
+| `PATCH`  | `/api/v1/customers/{id}` | Partially update customer attributes                | Yes (Bearer)  |
+| `DELETE` | `/api/v1/customers/{id}` | Permanently delete customer record (HTTP 204)       | Yes (Bearer)  |
+| `GET`    | `/api/v1/health`         | Health & infrastructure connectivity check          | No            |
 
 ---
 
 ## 🧪 Testing
 
 ### Backend Tests (Pytest)
-Comprehensive tests covering authentication, route authorization, customer CRUD, status validation, duplicate email handling, and search:
+
+Comprehensive tests covering authentication, RBAC role enforcement, route authorization, customer CRUD, status validation, duplicate email handling, and search:
 
 ```bash
 cd backend
 .venv\Scripts\pytest -v
 ```
-**Results**: `21 passed` (100% passing)
+
+**Results**: `40+ passed` (100% passing, including RBAC permission tests)
 
 ### Frontend Tests (Vitest & TypeScript)
-Unit tests verifying Zod schema validation, component rendering, loading states, and error handling:
+
+Unit tests verifying Zod schema validation, component rendering, auth utilities, date formatting, loading states, and error handling:
 
 ```bash
 cd frontend
 npm run type-check   # Verifies strict TypeScript compliance (0 errors)
-npm test -- --run    # Runs Vitest unit test suite (8 passed)
+npm test -- --run    # Runs Vitest unit test suite (20+ passed)
 ```
 
 ---
@@ -246,13 +264,12 @@ Step-by-step instructions for deploying the stack to production (**Supabase** fo
 
 ## 🔮 Future Improvements
 
-1. **Role-Based Access Control (RBAC)**: Introduce granular roles (`Admin`, `Manager`, `Viewer`) with endpoint-level permission dependencies.
-2. **Refresh Token Rotation**: Implement short-lived access tokens (15 minutes) paired with secure HTTP-only refresh tokens stored in database sessions.
-3. **Audit Trail & Activity History**: Create an `audit_logs` table tracking user actions (timestamp, user_id, action, customer_id, previous_state, new_state).
-4. **Rate Limiting & Abuse Protection**: Integrate Redis-backed sliding window rate limiters (`slowapi`) on login and search endpoints.
-5. **Bulk Operations & CSV Import**: Provide multi-select bulk customer status transitions and CSV data import/export wizards.
-6. **Customer Notes & Activity Timeline**: Support rich text notes and interaction logs associated with each customer record.
-7. **Automated CI/CD Deployment**: GitHub Actions workflow deploying frontend to Vercel and backend container to Render/AWS ECS on pull-request merge.
+1. **Refresh Token Rotation**: Implement short-lived access tokens (15 minutes) paired with secure HTTP-only refresh tokens stored in database sessions.
+2. **Audit Trail & Activity History**: Create an `audit_logs` table tracking user actions (timestamp, user_id, action, customer_id, previous_state, new_state).
+3. **Rate Limiting & Abuse Protection**: Integrate Redis-backed sliding window rate limiters (`slowapi`) on login and search endpoints.
+4. **Bulk Operations & CSV Import**: Provide multi-select bulk customer status transitions and CSV data import/export wizards.
+5. **Customer Notes & Activity Timeline**: Support rich text notes and interaction logs associated with each customer record.
+6. **Automated CI/CD Deployment**: GitHub Actions workflow deploying frontend to Vercel and backend container to Render on pull-request merge.
 
 ---
 

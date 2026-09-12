@@ -1,3 +1,5 @@
+export type UserRole = "admin" | "manager" | "viewer";
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -7,6 +9,7 @@ export interface User {
   id: string;
   email: string;
   is_active: boolean;
+  role: UserRole;
   created_at?: string;
 }
 

@@ -73,17 +73,19 @@ class CustomerRepository(BaseRepository[Customer]):
         return items, total
 
     def get_metrics(self) -> dict:
-        """Returns counts for KPI metric cards."""
-        total = self.db.query(func.count(Customer.id)).scalar() or 0
-        active = self.db.query(func.count(Customer.id)).filter(Customer.status == CustomerStatus.ACTIVE).scalar() or 0
-        lead = self.db.query(func.count(Customer.id)).filter(Customer.status == CustomerStatus.LEAD).scalar() or 0
-        inactive = self.db.query(func.count(Customer.id)).filter(Customer.status == CustomerStatus.INACTIVE).scalar() or 0
-
+        """Returns KPI counts in a single aggregation query."""
+        from sqlalchemy import case
+        row = self.db.query(
+            func.count(Customer.id).label("total"),
+            func.sum(case((Customer.status == CustomerStatus.ACTIVE, 1), else_=0)).label("active"),
+            func.sum(case((Customer.status == CustomerStatus.LEAD, 1), else_=0)).label("lead"),
+            func.sum(case((Customer.status == CustomerStatus.INACTIVE, 1), else_=0)).label("inactive"),
+        ).one()
         return {
-            "total_customers": total,
-            "active_count": active,
-            "lead_count": lead,
-            "inactive_count": inactive,
+            "total_customers": row.total or 0,
+            "active_count": row.active or 0,
+            "lead_count": row.lead or 0,
+            "inactive_count": row.inactive or 0,
         }
 
     def update(self, db_obj: Customer, obj_in: CustomerUpdate) -> Customer:

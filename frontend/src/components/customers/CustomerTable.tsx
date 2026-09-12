@@ -8,12 +8,12 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
 } from "lucide-react";
 import { Customer } from "@/features/customers/types";
 import { CustomerStatusBadge } from "./CustomerStatusBadge";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useAuthContext } from "@/providers/AuthProvider";
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -38,6 +38,7 @@ export function CustomerTable({
   onPageSizeChange,
   onDeleteClick,
 }: CustomerTableProps) {
+  const { canWrite, canDelete } = useAuthContext();
   if (isLoading) {
     return (
       <div className="w-full bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
@@ -96,11 +97,10 @@ export function CustomerTable({
           key={p}
           type="button"
           onClick={() => onPageChange(p)}
-          className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
-            isActive
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white"
-          }`}
+          className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${isActive
+            ? "bg-blue-600 text-white shadow-xs"
+            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white"
+            }`}
         >
           {p}
         </button>
@@ -202,29 +202,33 @@ export function CustomerTable({
                         href={`/dashboard/customers/${customer.id}`}
                         title="View Customer Profile"
                         className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         <Eye className="w-4 h-4" />
                       </Link>
-                      <Link
-                        href={`/dashboard/customers/${customer.id}/edit`}
-                        title="Edit Customer Profile"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteClick(customer);
-                        }}
-                        title="Delete Customer"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {canWrite && (
+                        <Link
+                          href={`/dashboard/customers/${customer.id}/edit`}
+                          title="Edit Customer Profile"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Link>
+                      )}
+                      {canDelete && (
+                        <button
+                          type="button"
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            onDeleteClick(customer);
+                          }}
+                          title="Delete Customer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

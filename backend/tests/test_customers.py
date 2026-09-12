@@ -187,3 +187,88 @@ def test_filter_customers_multi_status(client, auth_headers, db):
     assert "lead" in statuses or "inactive" in statuses
     assert all(c["status"] in ("lead", "inactive") for c in items)
 
+
+
+# ---------------------------------------------------------------------------
+# RBAC Tests
+# ---------------------------------------------------------------------------
+
+def test_viewer_can_list_customers(client, viewer_headers, sample_customer):
+    """VIEWERs can read the customer list."""
+    res = client.get("/api/v1/customers", headers=viewer_headers)
+    assert res.status_code == 200
+
+
+def test_viewer_can_get_customer(client, viewer_headers, sample_customer):
+    """VIEWERs can fetch a single customer."""
+    res = client.get(f"/api/v1/customers/{sample_customer.id}", headers=viewer_headers)
+    assert res.status_code == 200
+
+
+def test_viewer_cannot_create_customer(client, viewer_headers):
+    """VIEWERs are forbidden from creating customers."""
+    payload = {
+        "name": "Blocked User",
+        "email": "blocked@test.com",
+        "phone": "+15551234567",
+        "company": "Blocked Corp",
+        "status": "active",
+    }
+    res = client.post("/api/v1/customers", json=payload, headers=viewer_headers)
+    assert res.status_code == 403
+    assert res.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_viewer_cannot_update_customer(client, viewer_headers, sample_customer):
+    """VIEWERs are forbidden from updating customers."""
+    res = client.patch(
+        f"/api/v1/customers/{sample_customer.id}",
+        json={"status": "inactive"},
+        headers=viewer_headers,
+    )
+    assert res.status_code == 403
+    assert res.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_viewer_cannot_delete_customer(client, viewer_headers, sample_customer):
+    """VIEWERs are forbidden from deleting customers."""
+    res = client.delete(f"/api/v1/customers/{sample_customer.id}", headers=viewer_headers)
+    assert res.status_code == 403
+    assert res.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_manager_can_create_customer(client, manager_headers):
+    """MANAGERs can create customers."""
+    payload = {
+        "name": "Manager Created",
+        "email": "mgr.created@test.com",
+        "phone": "+15559876543",
+        "company": "Manager Corp",
+        "status": "lead",
+    }
+    res = client.post("/api/v1/customers", json=payload, headers=manager_headers)
+    assert res.status_code == 201
+
+
+def test_manager_can_update_customer(client, manager_headers, sample_customer):
+    """MANAGERs can update customers."""
+    res = client.patch(
+        f"/api/v1/customers/{sample_customer.id}",
+        json={"status": "inactive"},
+        headers=manager_headers,
+    )
+    assert res.status_code == 200
+    assert res.json()["status"] == "inactive"
+
+
+def test_manager_cannot_delete_customer(client, manager_headers, sample_customer):
+    """MANAGERs are forbidden from deleting customers."""
+    res = client.delete(f"/api/v1/customers/{sample_customer.id}", headers=manager_headers)
+    assert res.status_code == 403
+    assert res.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_admin_can_delete_customer(client, auth_headers, sample_customer):
+    """ADMINs can delete customers."""
+    res = client.delete(f"/api/v1/customers/{sample_customer.id}", headers=auth_headers)
+    assert res.status_code == 204

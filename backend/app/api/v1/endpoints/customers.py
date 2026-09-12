@@ -1,14 +1,19 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, require_role, get_db
 from app.models.customer import CustomerStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.customer import CustomerCreate, CustomerUpdate, CustomerResponse
 from app.schemas.common import PaginatedResponse
 from app.services.customer_service import CustomerService
 
 router = APIRouter()
+
+# Role permission summary:
+#   VIEWER  — GET list, GET by id
+#   MANAGER — + POST, PATCH
+#   ADMIN   — + DELETE
 
 
 @router.get(
@@ -18,16 +23,16 @@ router = APIRouter()
     summary="List Customers"
 )
 def list_customers(
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
-    search: Optional[str] = Query(None, description="Search query across name, email, company"),
-    status: Optional[str] = Query(None, description="Filter by status or comma-separated statuses (active, inactive, lead)"),
-    sort_by: str = Query("created_at", description="Field to sort by (created_at, name, email, company, status)"),
-    sort_order: str = Query("desc", description="Sort order direction (asc, desc)"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    sort_by: str = Query("created_at"),
+    sort_order: str = Query("desc"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),  # all authenticated roles
 ):
-    """Retrieve paginated list of customers with search, status filtering, and sorting."""
+    """Retrieve paginated list of customers. Accessible by all authenticated users."""
     service = CustomerService(db)
     return service.list_customers(
         page=page,
@@ -35,7 +40,7 @@ def list_customers(
         search=search,
         status=status,
         sort_by=sort_by,
-        sort_order=sort_order
+        sort_order=sort_order,
     )
 
 
@@ -48,9 +53,9 @@ def list_customers(
 def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),  # all authenticated roles
 ):
-    """Retrieve full customer details by ID."""
+    """Retrieve full customer details by ID. Accessible by all authenticated users."""
     service = CustomerService(db)
     return service.get_customer(customer_id)
 
@@ -64,9 +69,9 @@ def get_customer(
 def create_customer(
     customer_in: CustomerCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
 ):
-    """Create a new customer profile."""
+    """Create a new customer. Requires ADMIN or MANAGER role."""
     service = CustomerService(db)
     return service.create_customer(customer_in)
 
@@ -81,9 +86,9 @@ def update_customer(
     customer_id: str,
     customer_in: CustomerUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
 ):
-    """Update fields of an existing customer."""
+    """Update customer fields. Requires ADMIN or MANAGER role."""
     service = CustomerService(db)
     return service.update_customer(customer_id, customer_in)
 
@@ -96,9 +101,9 @@ def update_customer(
 def delete_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
 ):
-    """Delete an existing customer by ID."""
+    """Delete a customer. Requires ADMIN role only."""
     service = CustomerService(db)
     service.delete_customer(customer_id)
     return None

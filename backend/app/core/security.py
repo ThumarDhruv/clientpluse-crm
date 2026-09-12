@@ -26,19 +26,21 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(
     subject: Union[str, Any],
+    role: str = "viewer",
     expires_delta: Optional[timedelta] = None
 ) -> str:
-    """Encodes JWT access token with subject and expiration."""
+    """Encodes JWT access token with subject, role, and expiration."""
     now = datetime.now(timezone.utc)
     if expires_delta:
         expire = now + expires_delta
     else:
         expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode = {
         "exp": expire,
         "iat": now,
         "sub": str(subject),
+        "role": role,
     }
     encoded_jwt = jwt.encode(
         to_encode,

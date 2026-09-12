@@ -46,3 +46,22 @@ def test_get_me_unauthenticated(client):
     assert response.status_code == 401
     data = response.json()
     assert data["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_login_response_includes_role(client, test_user):
+    """Login response must include the user's role."""
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "Admin@123"}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "role" in data["user"]
+    assert data["user"]["role"] == "admin"
+
+
+def test_get_me_includes_role(client, auth_headers):
+    """/auth/me must expose the role field."""
+    response = client.get("/api/v1/auth/me", headers=auth_headers)
+    assert response.status_code == 200
+    assert response.json()["role"] == "admin"

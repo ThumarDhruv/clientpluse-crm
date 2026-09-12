@@ -8,9 +8,14 @@ export const customerFormSchema = z.object({
     .transform((v) => v.trim()),
   email: z
     .string()
-    .email("Please enter a valid email address (e.g. name@company.com)")
-    .max(255, "Email must not exceed 255 characters")
-    .transform((v) => v.trim().toLowerCase()),
+    .trim()
+    .toLowerCase()
+    .pipe(
+      z
+        .string()
+        .email("Please enter a valid email address (e.g. name@company.com)")
+        .max(255, "Email must not exceed 255 characters")
+    ),
   phone: z
     .string()
     .min(5, "Phone number must be at least 5 characters")
