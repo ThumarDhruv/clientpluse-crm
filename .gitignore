@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env.local
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Docker
+postgres_data/
+
+# Raw design mockups & stitch assets (kept locally, not needed in production repo)
+design_stitch/
+
+# Internal assessment reports & interview defense notes (kept locally for interview prep)
+CODE_REVIEW_REPORT.md
+SECURITY_AUDIT_REPORT.md
+ASSESSMENT_TRACEABILITY.md
+DATABASE_REVIEW.md
+TESTING_REVIEW.md
+IMPROVEMENT_PLAN.md
+INTERVIEW_DEFENSE_NOTES.md
+TASK_PLAN.md
