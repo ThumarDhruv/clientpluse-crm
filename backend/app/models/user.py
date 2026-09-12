@@ -36,7 +36,7 @@ class User(Base, TimestampMixin):
         nullable=False
     )
     role = Column(
-        Enum(UserRole, native_enum=False),
+        Enum(UserRole, name="user_role_enum", native_enum=False, values_callable=lambda obj: [e.value for e in obj]),
         default=UserRole.VIEWER,
         nullable=False,
         index=True

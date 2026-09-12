@@ -41,7 +41,7 @@ class Customer(Base, TimestampMixin):
         index=True
     )
     status = Column(
-        Enum(CustomerStatus, name="customer_status_enum", native_enum=False),
+        Enum(CustomerStatus, name="customer_status_enum", native_enum=False, values_callable=lambda obj: [e.value for e in obj]),
         default=CustomerStatus.ACTIVE,
         nullable=False,
         index=True
