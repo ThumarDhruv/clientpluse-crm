@@ -8,6 +8,7 @@ Create Date: 2026-09-12 14:00:00.000000
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 revision: str = '003_add_user_role'
 down_revision: Union[str, None] = '002_add_customer_email_unique'
@@ -16,6 +17,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Drop any stale native enum type from a failed previous deploy
+    # This is safe to run even if the type doesn't exist (IF EXISTS)
+    op.execute("DROP TYPE IF EXISTS user_role_enum CASCADE")
+
+    # Add role as a plain VARCHAR column storing lowercase string values
+    # (native_enum=False on the model means SQLAlchemy uses VARCHAR, not a PG ENUM type)
     op.add_column(
         'users',
         sa.Column(

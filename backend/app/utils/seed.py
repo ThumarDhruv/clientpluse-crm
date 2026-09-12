@@ -1,5 +1,6 @@
 import logging
 import uuid
+import sqlalchemy as sa
 from datetime import datetime, timezone, timedelta
 from app.core.database import SessionLocal, Base, engine
 from app.core.security import get_password_hash
@@ -16,6 +17,16 @@ def seed_database():
     db = SessionLocal()
 
     try:
+        # Normalize any stale uppercase role values from a previous failed migration
+        # This is a no-op if the column already has correct lowercase values
+        try:
+            db.execute(
+                sa.text("UPDATE users SET role = LOWER(role) WHERE role != LOWER(role)")
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+
         # 1. Seed Demo Users
         demo_users = [
             {

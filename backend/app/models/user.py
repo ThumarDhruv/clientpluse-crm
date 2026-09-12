@@ -36,7 +36,7 @@ class User(Base, TimestampMixin):
         nullable=False
     )
     role = Column(
-        Enum(UserRole, name="user_role_enum", native_enum=False),
+        Enum(UserRole, native_enum=False),
         default=UserRole.VIEWER,
         nullable=False,
         index=True
