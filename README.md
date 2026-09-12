@@ -6,19 +6,31 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-Passing_40%2B%2F40%2B-success)](backend/tests)
+[![Tests](https://img.shields.io/badge/Tests-Passing_65%2F65-success)](backend/tests)
 
-ClientPulse is a full-stack Customer Relationship Management (CRM) platform built for enterprise customer lifecycle operations. It features a modern **Next.js 15 App Router** interface with URL state synchronization and responsive layouts, backed by a high-performance **FastAPI** REST API, PostgreSQL persistence with Alembic migrations, JWT authentication, and Docker orchestration.
+ClientPulse is a full-stack Customer Relationship Management (CRM) platform built for enterprise customer lifecycle operations. It features a modern **Next.js 15 App Router** interface with URL state synchronization, responsive layouts, and granular Role-Based Access Control (RBAC), backed by a high-performance **FastAPI** REST API, PostgreSQL persistence with Alembic migrations, JWT authentication, and Docker orchestration.
+
+---
+
+## 🌐 Live Production Deployments
+
+| Component | Platform | URL |
+|---|---|---|
+| **Live Web App (Frontend)** | **Vercel** | [https://clientpluse-crm-tau.vercel.app](https://clientpluse-crm-tau.vercel.app) |
+| **Live REST API (Backend)** | **Render** | [https://clientpulse-api-6asd.onrender.com/api/v1](https://clientpulse-api-6asd.onrender.com/api/v1) |
+| **Interactive Swagger UI** | **Render / OpenAPI** | [https://clientpulse-api-6asd.onrender.com/docs](https://clientpulse-api-6asd.onrender.com/docs) |
+| **Health Check Endpoint** | **Render** | [https://clientpulse-api-6asd.onrender.com/api/v1/health](https://clientpulse-api-6asd.onrender.com/api/v1/health) |
 
 ---
 
 ## 📑 Table of Contents
 
+- [Live Production Deployments](#-live-production-deployments)
 - [Tech Stack](#-tech-stack)
 - [Key Features](#-key-features)
+- [Demo Credentials](#-demo-credentials)
 - [Quick Start with Docker](#-quick-start-with-docker-compose)
 - [Local Development Setup](#-local-development-setup)
-- [Demo Credentials](#-demo-credentials)
 - [API Documentation](#-api-documentation)
 - [Testing](#-testing)
 - [Production Deployment](#-production-deployment)
@@ -223,7 +235,7 @@ cd backend
 .venv\Scripts\pytest -v
 ```
 
-**Results**: `40+ passed` (100% passing, including RBAC permission tests)
+**Results**: `32 passed` (100% passing, including all RBAC role and endpoint authorization tests)
 
 ### Frontend Tests (Vitest & TypeScript)
 
@@ -232,14 +244,18 @@ Unit tests verifying Zod schema validation, component rendering, auth utilities,
 ```bash
 cd frontend
 npm run type-check   # Verifies strict TypeScript compliance (0 errors)
-npm test -- --run    # Runs Vitest unit test suite (20+ passed)
+npm run test         # Runs Vitest unit test suite (33 passed)
 ```
 
 ---
 
-## 🚀 Production Deployment
+## 🚀 Production Deployment Architecture
 
-Step-by-step instructions for deploying the stack to production (**Supabase** for PostgreSQL, **Render** for FastAPI, and **Vercel** for Next.js) are documented in [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
+The full-stack application is deployed across three cloud tiers:
+
+1. **Frontend (Vercel)**: Next.js 15 App Router deployed on the edge network at [https://clientpluse-crm-tau.vercel.app](https://clientpluse-crm-tau.vercel.app).
+2. **Backend API (Render)**: FastAPI Python 3.12 service hosted on Render at [https://clientpulse-api-6asd.onrender.com](https://clientpulse-api-6asd.onrender.com).
+3. **Database (Supabase)**: Managed PostgreSQL 16 instance with automated Alembic migrations and connection pooling via Psycopg 3.
 
 ---
 
